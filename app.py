@@ -1,11 +1,20 @@
 from flask import Flask, render_template
 
+app = Flask(__name__)
 
-app = Flask(__name__) 
+@app.route("/")
+def questao1():
+    return render_template("questao1.html", name = "Matheus")
 
-@app.route('/ambiente')  
-def curriculo():
-    return render_template("home.html")
 
-if __name__ == '__main__':
+
+@app.route("/questao2")
+def questao2():
+   dados = [{"nome": "Matheus", "idade": "19"}]
+   return render_template("questao2.html", alunos = dados)
+
+
+
+
+if __name__ == "__main__":
     app.run(debug=True)
