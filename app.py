@@ -1,35 +1,34 @@
-from flask import Flask, render_template, request
+import os
+
+from flask import Flask
+
+from controllers import calculadora_bp
+from models import Operacao, db
 
 
-app = Flask(__name__)
+def criar_app():
+    app = Flask(
+        __name__,
+        template_folder="views/templates",
+        static_folder="views/static",
+    )
 
-dados_especialidades = {
-    "Cardiologia": [
-        {"nome": "Dr. André Souza", "crm": "CRM/MG 18432", "planos": ["Unimed", "Amil", "SulAmérica"]},
-        {"nome": "Dra. Fernanda Melo", "crm": "CRM/MG 22105", "planos": ["Bradesco Saúde", "Unimed"]},
-    ],
-    "Pediatria": [
-        {"nome": "Dra. Carla Nunes", "crm": "CRM/MG 15780", "planos": ["Unimed", "Hapvida", "Amil"]},
-        {"nome": "Dr. Lucas Ribeiro", "crm": "CRM/MG 31209", "planos": ["SulAmérica", "NotreDame"]},
-    ],
-    "Dermatologia": [
-        {"nome": "Dra. Juliana Costa", "crm": "CRM/MG 29801", "planos": ["Amil", "Bradesco Saúde"]},
-    ],
-}
+    pasta_aula = os.path.abspath(os.path.dirname(__file__))
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
+        pasta_aula, "calculadora.db"
+    )
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-@app.route('/', methods=["GET",'POST' ]  )
-def painel():
-    medicos = None
-    especialidade = None
-    erro = None
-    if request.method == 'POST':
-        especialidade = request.form.get("especialidade")
-    if especialidade in dados_especialidades:
-        medicos = dados_especialidades[especialidade]
-    else:
-        erro = f"A especialidade ${especialidade} não foi encontrada."
-        especialidade = None
-    return render_template( 'painel.html', especialidade=especialidade, medicos=medicos, erro=erro)
+    db.init_app(app)
+    app.register_blueprint(calculadora_bp)
 
-if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+
+    return app
+
+
+app = criar_app()
+
+if __name__ == "__main__":
     app.run(debug=True)
